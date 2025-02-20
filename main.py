@@ -13,6 +13,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from parse import parse_method, parser_add_default_args, parser_add_main_args
+from dataset import load_dataset
 
 def get_gpu_memory_map():
     """Get the current gpu usage.
@@ -53,3 +54,6 @@ if args.cpu:
 else:
     device = torch.device("cuda:" + str(args.device)
                           ) if torch.cuda.is_available() else torch.device("cpu")
+    
+
+dataset = load_dataset(args)

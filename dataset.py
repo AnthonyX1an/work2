@@ -151,3 +151,18 @@ def load_MNIST_dataset(data_dir, name, n_blocks, knn):
 
     print("load dataset success")
     return train_dataset, test_dataset
+
+def load_dataset(data_dir, dataname, n_blocks, knn):
+    if dataname in ('Image'):
+        dataset = load_Image_dataset(data_dir, dataname, n_blocks, knn)
+    elif dataname in ('MNIST'):
+        train_dataset, test_dataset = load_MNIST_dataset(data_dir, dataname, n_blocks, knn)
+        return train_dataset, test_dataset
+    elif dataname in ('EEG'):
+        dataset = load_EEG_dataset(data_dir, dataname, n_blocks, knn)
+    elif dataname in ('ADHD'):
+        train_dataset, test_dataset = load_ADHD_as_NCDataset(data_dir, dataname, n_blocks, knn)
+        return train_dataset, test_dataset
+    else:
+        raise ValueError('Invalid dataname')
+    return dataset
