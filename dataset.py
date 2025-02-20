@@ -30,8 +30,8 @@ from ogb.nodeproppred import NodePropPredDataset
 
 from PIL import Image
 
-from data.EEG.ge.protocols import *
-from data.EEG.ge.models import *
+# from data.EEG.ge.protocols import *
+# from data.EEG.ge.models import *
 
 from nilearn.connectome import ConnectivityMeasure
 
@@ -55,6 +55,14 @@ class NCDataset(Dataset):  # 继承自 PyTorch 的 Dataset 类
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, len(self))
+
+def find_k_nearest(dataset, knn):
+    # nbrs = NearestNeighbors(n_neighbors=k, algorithm='auto').fit(blocks)
+    # distances, indices = nbrs.kneighbors(blocks)
+    node_features = dataset['node_feat'].detach().numpy()
+    adj_knn = kneighbors_graph(node_features, n_neighbors=knn, include_self=True)
+    edge_index = torch.tensor(adj_knn.nonzero(), dtype=torch.long)
+    return edge_index
 
 def MNIST_to_blocks(img_np, n_blocks):
     img_array = np.array(img_np).astype(np.float32)

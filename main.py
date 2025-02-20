@@ -12,8 +12,15 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 import torch.nn as nn
 import torch.nn.functional as F
 
-from parse import parse_method, parser_add_default_args, parser_add_main_args
+from parse import parser_add_default_args, parser_add_main_args
 from dataset import load_dataset
+
+# data_dir = "/home/dell/sx/DoubleGum/data/ADHD/ADHD"
+# data_dir = '/home/dell/sx/DoubleGum/data/EEG/FACED_dataset_2_labels.mat'
+data_dir = '/home/dell/sx/MNIST'
+data_name = 'MNIST'
+n_blocks = 16
+knn = 3
 
 def get_gpu_memory_map():
     """Get the current gpu usage.
@@ -56,4 +63,12 @@ else:
                           ) if torch.cuda.is_available() else torch.device("cpu")
     
 
-dataset = load_dataset(args)
+if data_name == 'MNIST':
+    train_dataset, test_dataset = load_dataset(data_dir, data_name, n_blocks, knn)
+    #batch
+    # train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    # test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+elif data_name == 'EEG':
+    loader, train_dataset, test_dataset = load_dataset(data_dir, data_name, n_blocks, knn)
+elif data_name == 'ADHD':
+    train_dataset, test_dataset = load_dataset(data_dir, data_name, n_blocks, knn)
