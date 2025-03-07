@@ -61,13 +61,9 @@ if args.cpu:
 else:
     device = torch.device("cuda:" + str(args.device)
                           ) if torch.cuda.is_available() else torch.device("cpu")
-    
 
 if data_name == 'MNIST':
     train_dataset, test_dataset = load_dataset(data_dir, data_name, n_blocks, knn)
-    #batch
-    # train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    # test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 elif data_name == 'EEG':
     loader, train_dataset, test_dataset = load_dataset(data_dir, data_name, n_blocks, knn)
 elif data_name == 'ADHD':
