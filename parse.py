@@ -1,110 +1,110 @@
-# from models import *
-# from ours import *
-# from nodeformer import *
-# from difformer import *
-# from graphormer import *
-# from graphtrans import *
-# from graphgps import *
+from models import *
+from ours import *
+from nodeformer import *
+from difformer import *
+from graphormer import *
+from graphtrans import *
+from graphgps import *
 
 
-# def parse_method(method, args, c, d, device):
-#     if method == 'gcn':
-#         model = GCN(in_channels=d,
-#                     hidden_channels=args.hidden_channels,
-#                     out_channels=c,
-#                     num_layers=args.num_layers,
-#                     dropout=args.dropout,
-#                     use_bn=args.use_bn).to(device)
-#     elif method == 'sgc':
-#         model = SGC(in_channels=d,
-#                     out_channels=c,
-#                       hops=args.hops).to(device)
-#     elif method == 'gat':
-#         model = GAT(in_channels=d,
-#                     hidden_channels=args.hidden_channels,
-#                     out_channels=c,
-#                     num_layers=args.num_layers,
-#                     dropout=args.dropout,
-#                     use_bn=args.use_bn, 
-#                     heads=args.gat_heads, 
-#                     out_heads=args.out_heads).to(device)
-#     elif method == 'gcnjk':
-#         model = GCNJK(in_channels=d,
-#                       hidden_channels=args.hidden_channels,
-#                       out_channels=c,
-#                       num_layers=args.num_layers,
-#                       dropout=args.dropout).to(device)
-#     elif method == 'appnp':
-#         model = APPNP_Net(in_channels=d,
-#                           hidden_channels=args.hidden_channels,
-#                           out_channels=c,
-#                           dropout=args.dropout).to(device)
-#     elif method == 'h2gcn':
-#         model = model = H2GCN(feat_dim=d,hidden_dim=args.hidden_channels,class_dim=c,dropout=args.dropout).to(device)
-#     elif method == 'sign':
-#         model = SIGN(in_channels=d,
-#                      hidden_channels=args.hidden_channels,
-#                      out_channels=c,
-#                      hops=args.hops,
-#                      num_layers=args.num_layers,
-#                      dropout=args.dropout,
-#                      use_bn=args.use_bn).to(device)
-#     elif method == 'graphgps':
-#         model = GPSModel(in_channels=d,
-#                          out_channels=c,
-#                          hidden_channels=args.hidden_channels,
-#                          num_layers=args.num_layers,
-#                          num_heads=args.num_heads,
-#                          dropout=args.dropout,
-#                          attn_dropout=args.dropout,
-#                          use_bn=args.use_bn).to(device)
-#     elif method == 'graphormer':
-#         model = Graphormer(num_classes=c, 
-#                             encoder_embed_dim=args.encoder_emdim,
-#                             encoder_attention_heads=1, 
-#                             num_encoder_layers=2, 
-#                             dropout=args.dropout,
-#                             activation_dropout=args.dropout,
-#                             attention_dropout=args.dropout,
-#                             device=device).to(device)
-#     elif method == 'graphtrans':
-#         model = graphTrans(in_channels=d,
-#                          hidden_channels=args.hidden_channels,
-#                          out_channels=c,
-#                          gnn_emb_dim=64,
-#                          d_model=64,
-#                          num_layers=args.num_layers, 
-#                          num_trans_layers=2,
-#                          num_trans_head=1,
-#                          dim_feedforward=256,
-#                          dropout=args.dropout).to(device)
-#     elif method == 'nodeformer':
-#         model = NodeFormer(in_channels=d,
-#                          hidden_channels=args.hidden_channels,
-#                          out_channels=c,
-#                          num_layers=args.num_layers,
-#                          dropout=args.dropout,
-#                          num_heads=args.num_heads,
-#                          use_bn=args.use_bn).to(device)
-#     elif method == 'difformer':
-#         model = DIFFormer(in_channels=d,
-#                           hidden_channels=args.hidden_channels,
-#                           out_channels=c,
-#                           num_layers=args.num_layers,
-#                           alpha=args.alpha,
-#                           dropout=args.dropout,
-#                           num_heads=args.num_heads).to(device)
-#     elif method == 'ours':
-#         if args.use_graph:
-#             gnn=parse_method(args.backbone, args, args.hidden_channels, d, device)
-#             model = SGFormer(d, args.hidden_channels, c, num_layers=args.ours_layers, alpha=args.alpha, dropout=args.ours_dropout, num_heads=args.num_heads,
-#                     use_bn=args.use_bn, use_residual=args.ours_use_residual, use_graph=args.use_graph, use_weight=args.ours_use_weight, use_act=args.ours_use_act, graph_weight=args.graph_weight, gnn=gnn, aggregate=args.aggregate).to(device)
-#         else:
-#             model = Ours(d, args.hidden_channels, c, num_layers=args.num_layers, alpha=args.alpha, dropout=args.dropout, num_heads=args.num_heads,
-#                      use_bn=args.use_bn, use_residual=args.ours_use_residual, use_graph=args.use_graph, use_weight=args.ours_use_weight, use_act=args.ours_use_act, graph_weight=args.graph_weight, aggregate=args.aggregate).to(device)
-#     else:
-#         raise ValueError(f'Invalid method {method}')
-#     return model
+def parse_method(method, args, c, d, device):
+    if method == 'gcn':
+        model = GCN(in_channels=d,
+                    hidden_channels=args.hidden_channels,
+                    out_channels=c,
+                    num_layers=args.num_layers,
+                    dropout=args.dropout,
+                    use_bn=args.use_bn).to(device)
+    elif method == 'sgc':
+        model = SGC(in_channels=d,
+                    out_channels=c,
+                      hops=args.hops).to(device)
+    elif method == 'gat':
+        model = GAT(in_channels=d,
+                    hidden_channels=args.hidden_channels,
+                    out_channels=c,
+                    num_layers=args.num_layers,
+                    dropout=args.dropout,
+                    use_bn=args.use_bn, 
+                    heads=args.gat_heads, 
+                    out_heads=args.out_heads).to(device)
+    elif method == 'gcnjk':
+        model = GCNJK(in_channels=d,
+                      hidden_channels=args.hidden_channels,
+                      out_channels=c,
+                      num_layers=args.num_layers,
+                      dropout=args.dropout).to(device)
+    elif method == 'appnp':
+        model = APPNP_Net(in_channels=d,
+                          hidden_channels=args.hidden_channels,
+                          out_channels=c,
+                          dropout=args.dropout).to(device)
+    elif method == 'h2gcn':
+        model = model = H2GCN(feat_dim=d,hidden_dim=args.hidden_channels,class_dim=c,dropout=args.dropout).to(device)
+    elif method == 'sign':
+        model = SIGN(in_channels=d,
+                     hidden_channels=args.hidden_channels,
+                     out_channels=c,
+                     hops=args.hops,
+                     num_layers=args.num_layers,
+                     dropout=args.dropout,
+                     use_bn=args.use_bn).to(device)
+    elif method == 'graphgps':
+        model = GPSModel(in_channels=d,
+                         out_channels=c,
+                         hidden_channels=args.hidden_channels,
+                         num_layers=args.num_layers,
+                         num_heads=args.num_heads,
+                         dropout=args.dropout,
+                         attn_dropout=args.dropout,
+                         use_bn=args.use_bn).to(device)
+    elif method == 'graphormer':
+        model = Graphormer(num_classes=c, 
+                            encoder_embed_dim=args.encoder_emdim,
+                            encoder_attention_heads=1, 
+                            num_encoder_layers=2, 
+                            dropout=args.dropout,
+                            activation_dropout=args.dropout,
+                            attention_dropout=args.dropout,
+                            device=device).to(device)
+    elif method == 'graphtrans':
+        model = graphTrans(in_channels=d,
+                         hidden_channels=args.hidden_channels,
+                         out_channels=c,
+                         gnn_emb_dim=64,
+                         d_model=64,
+                         num_layers=args.num_layers, 
+                         num_trans_layers=2,
+                         num_trans_head=1,
+                         dim_feedforward=256,
+                         dropout=args.dropout).to(device)
+    elif method == 'nodeformer':
+        model = NodeFormer(in_channels=d,
+                         hidden_channels=args.hidden_channels,
+                         out_channels=c,
+                         num_layers=args.num_layers,
+                         dropout=args.dropout,
+                         num_heads=args.num_heads,
+                         use_bn=args.use_bn).to(device)
+    elif method == 'difformer':
+        model = DIFFormer(in_channels=d,
+                          hidden_channels=args.hidden_channels,
+                          out_channels=c,
+                          num_layers=args.num_layers,
+                          alpha=args.alpha,
+                          dropout=args.dropout,
+                          num_heads=args.num_heads).to(device)
+    elif method == 'ours':
+        if args.use_graph:
+            gnn=parse_method(args.backbone, args, args.hidden_channels, d, device)
+            model = SGFormer(d, args.hidden_channels, c, num_layers=args.ours_layers, alpha=args.alpha, dropout=args.ours_dropout, num_heads=args.num_heads,
+                    use_bn=args.use_bn, use_residual=args.ours_use_residual, use_graph=args.use_graph, use_weight=args.ours_use_weight, use_act=args.ours_use_act, graph_weight=args.graph_weight, gnn=gnn, aggregate=args.aggregate).to(device)
+        else:
+            model = Ours(d, args.hidden_channels, c, num_layers=args.num_layers, alpha=args.alpha, dropout=args.dropout, num_heads=args.num_heads,
+                     use_bn=args.use_bn, use_residual=args.ours_use_residual, use_graph=args.use_graph, use_weight=args.ours_use_weight, use_act=args.ours_use_act, graph_weight=args.graph_weight, aggregate=args.aggregate).to(device)
+    else:
+        raise ValueError(f'Invalid method {method}')
+    return model
 
 def parser_add_main_args(parser):
     # dataset and evaluation
