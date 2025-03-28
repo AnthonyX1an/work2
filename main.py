@@ -11,8 +11,8 @@ import torch
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import torch.nn as nn
 import torch.nn.functional as F
-
-from parse import parser_add_default_args, parser_add_main_args
+from eval import evaluate, eval_acc, eval_rocauc, eval_f1
+from parse import parse_method, parser_add_main_args, parser_add_default_args 
 from dataset import load_dataset
 
 # data_dir = "/home/dell/sx/DoubleGum/data/ADHD/ADHD"
@@ -125,13 +125,17 @@ for epoch in range(args.epochs):
     for i in train_list:
         flag += 1
         optimizer.zero_grad()
-        center_optimizer.zero_grad()
+        # center_optimizer.zero_grad()
         graph = train_dataset.graphs[train_list[i]]
         label =  train_dataset.labels[train_list[i]]
         
         graph['node_feat'] = graph['node_feat'].to(device)  # This is fine for a single tensor
-        graph['adjs_in'] = [adj.to(device) for adj in graph['adjs_in']]
-        out, out_flat, _ , _= model(graph['node_feat'], graph['adjs_in'], args.tau)
+        # adjs_list = graph['adjs']
+        # graph['edge_index'] = torch.stack(adjs_list, dim=0)
+        graph['adjs'] = [adj.to(device) for adj in graph['adjs']]
+        graph['edge_index'] = graph['adjs'][0]
+        # out = model(graph['node_feat'], graph['adjs'])
+        out = model(graph)
         
         if label == 0:
             label = torch.tensor(0).to(device)
@@ -156,7 +160,7 @@ for epoch in range(args.epochs):
 
         classification_loss = criterion1(out, label)
         loss = classification_loss
-        loass.backward()
+        loss.backward()
         optimizer.step()
         total_loss = classification_loss.detach().cpu().item() + total_loss
     total_loss = total_loss / len(train_dataset.graphs)
@@ -177,8 +181,12 @@ for epoch in range(args.epochs):
         for graph, label in zip(test_dataset.graphs, test_dataset.labels):
             flag_ += 1
             graph['node_feat'] = graph['node_feat'].to(device)  # This is fine for a single tensor
-            graph['adjs_in'] = [adj.to(device) for adj in graph['adjs_in']]
-            out, _, node_weight, edge_weight = model(graph['node_feat'], graph['adjs_in'], args.tau)
+            # adjs_list = graph['adjs']
+            # graph['edge_index'] = torch.stack(adjs_list, dim=0)
+            graph['adjs'] = [adj.to(device) for adj in graph['adjs']]
+            graph['edge_index'] = graph['adjs'][0]
+            # out = model(graph['node_feat'], graph['adjs'])
+            out = model(graph)
             if label == 0:
                 label = torch.tensor(0).to(device)
             elif label == 1:
@@ -206,10 +214,10 @@ for epoch in range(args.epochs):
             t_loss += loss.detach().cpu().item()
             y_pred.append(torch.argmax(out,dim=-1).detach().cpu().item())  
             
-            if label == 0:
-                epoch_node_weights[0].append(node_weight.cpu().numpy())
-            else:
-                epoch_node_weights[1].append(node_weight.cpu().numpy())
+            # if label == 0:
+            #     epoch_node_weights[0].append(node_weight.cpu().numpy())
+            # else:
+            #     epoch_node_weights[1].append(node_weight.cpu().numpy())
             
         accuracy = accuracy_score(ground_truth, y_pred)   
         f1 = f1_score(ground_truth, y_pred, average='weighted')  # 对于二分类问题  

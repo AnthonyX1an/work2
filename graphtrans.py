@@ -73,9 +73,9 @@ class GCN(nn.Module):
             bn.reset_parameters()
 
     def forward(self, data):
-        x = data.graph['node_feat']
-        edge_index=data.graph['edge_index']
-        edge_weight=data.graph['edge_weight'] if 'edge_weight' in data.graph else None
+        x = data['node_feat']
+        edge_index=data['edge_index']
+        edge_weight=data['edge_weight'] if 'edge_weight' in data else None
         for i, conv in enumerate(self.convs[:-1]):
             if edge_weight is None:
                 x = conv(x, edge_index)
@@ -85,7 +85,7 @@ class GCN(nn.Module):
                 x = self.bns[i](x)
             x = self.activation(x)
             x = F.dropout(x, p=self.dropout, training=self.training)
-        x = self.convs[-1](x, data.graph['edge_index'])
+        x = self.convs[-1](x, data['edge_index'])
         return x
 
 class graphTrans(nn.Module):

@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from models import GCN
 from torch_geometric.utils import degree
 from torch_sparse import SparseTensor, matmul
-
+from torch import Tensor
 
 def full_attention_conv(qs, ks, vs, output_attn=False):
     # normalize input
@@ -131,9 +131,9 @@ class TransConv(nn.Module):
             fc.reset_parameters()
 
     def forward(self, data):
-        x = data.graph['node_feat']
-        edge_index = data.graph['edge_index']
-        edge_weight = data.graph['edge_weight'] if 'edge_weight' in data.graph else None
+        x = data['node_feat']
+        edge_index = data['edge_index']
+        edge_weight = data['edge_weight'] if 'edge_weight' in data else None
         layer_ = []
 
         # input MLP layer
@@ -176,6 +176,80 @@ class TransConv(nn.Module):
             layer_.append(x)
         return torch.stack(attentions, dim=0)  # [layer num, N, N]
 
+class Masker(nn.Module):
+    def __init__(self, n_heads: int, n_nodes: int) -> None:
+        super().__init__()
+        self.mask = nn.Parameter(torch.Tensor(n_heads, n_nodes, 2))
+        nn.init.xavier_normal_(self.mask)
+
+    def forward(self) -> tuple[Tensor, Tensor]:
+        """
+        Outputs:
+            mask - [n_heads, n_nodes], binary selection mask per head
+            mask_logits - [n_heads, n_nodes], selection logits
+        """
+        mask_logits = torch.log_softmax(self.mask, dim=-1)
+        mask = F.gumbel_softmax(mask_logits, tau=1, hard=True)[..., 1]  # Select 1 (include)
+        return mask, mask_logits[..., 1]
+
+
+class HyBRiDConstructor(nn.Module):
+    def __init__(self, n_hypers: int, n_nodes: int, dropout: float = 0.1) -> None:
+        super().__init__()
+        self.dropout = nn.Dropout(dropout)
+        self.masker = Masker(n_hypers, n_nodes)
+
+    def forward(self, x: Tensor) -> tuple[Tensor, tuple[Tensor, Tensor]]:
+        """
+        Inputs:
+            x - [n_nodes, feature_dim]
+        Outputs:
+            h - [n_hypers, feature_dim]  # aggregated features per hyperedge
+            mask - [n_hypers, n_nodes]
+            mask_logits - [n_hypers, n_nodes]
+        """
+        x = x["node_feat"]
+        n_nodes, feat_dim = x.size()
+        mask, mask_logits = self.masker()  # mask: [n_hypers, n_nodes]
+
+        x = x.unsqueeze(0)                     # [1, n_nodes, feature_dim]
+        mask = mask.unsqueeze(-1)              # [n_hypers, n_nodes, 1]
+        x_masked = mask * x                    # [n_hypers, n_nodes, feature_dim]
+
+        h = x_masked.sum(1) / (1e-7 + mask.sum(1))  # [n_hypers, feature_dim]
+        h = self.dropout(h)
+
+        return h, (mask.squeeze(-1), mask_logits)
+
+def edge_mapping(mask: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+    n_hypers, n_nodes = mask.shape
+    node_to_hyper = [[] for _ in range(n_nodes)]
+    
+    for hyper_id in range(n_hypers):
+        for node_id in range(n_nodes):
+            if mask[hyper_id, node_id] > 0:
+                node_to_hyper[node_id].append(hyper_id)
+
+    old_src, old_dst = edge_index
+    new_edges = set()
+
+    for i in range(edge_index.size(1)):
+        src = old_src[i].item()
+        dst = old_dst[i].item()
+        hypers_src = node_to_hyper[src]
+        hypers_dst = node_to_hyper[dst]
+
+        for h_src in hypers_src:
+            for h_dst in hypers_dst:
+                new_edges.add((h_src, h_dst))  # 自动去重
+
+    if len(new_edges) > 0:
+        edge_index_new = torch.tensor(list(new_edges), dtype=torch.long).t().contiguous()
+    else:
+        edge_index_new = torch.empty((2, 0), dtype=torch.long)
+
+    return edge_index_new
+
 class SGFormer(nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers=2, num_heads=1, 
                  alpha=0.5, dropout=0.5, use_bn=True, use_residual=True, use_weight=True, use_graph=True, use_act=False, graph_weight=0.8, gnn=None, aggregate='add'):
@@ -185,13 +259,15 @@ class SGFormer(nn.Module):
         self.use_graph=use_graph
         self.graph_weight=graph_weight
         self.use_act=use_act
-
+        self.constructor= HyBRiDConstructor(n_hypers=8, n_nodes=16)
         self.aggregate=aggregate
 
         if aggregate=='add':
-            self.fc=nn.Linear(hidden_channels,out_channels)
+            # self.fc=nn.Linear(hidden_channels,out_channels)
+            self.fc=nn.Linear(512, out_channels)
         elif aggregate=='cat':
-            self.fc=nn.Linear(2*hidden_channels,out_channels)
+            # self.fc=nn.Linear(2*hidden_channels,out_channels)
+            self.fc=nn.Linear(512, out_channels)
         else:
             raise ValueError(f'Invalid aggregate type:{aggregate}')
         
@@ -200,15 +276,24 @@ class SGFormer(nn.Module):
         self.params2.extend(list(self.fc.parameters()) )
 
     def forward(self,data):
-        x1=self.trans_conv(data)
+        x, mask= self.constructor(data)
+        # data["node_feat"] = x
+        edge_index_old = data["edge_index"]
+        edge_index_new = edge_mapping(mask[0], edge_index_old).to(x.device)
+        data_new = {
+            'node_feat': x,
+            'edge_index': edge_index_new
+        }
+        x1=self.trans_conv(data_new)
         if self.use_graph:
-            x2=self.gnn(data)
+            x2=self.gnn(data_new)
             if self.aggregate=='add':
                 x=self.graph_weight*x2+(1-self.graph_weight)*x1
             else:
                 x=torch.cat((x1,x2),dim=1)
         else:
             x=x1
+        x = x.flatten()
         x=self.fc(x)
         return x
     
