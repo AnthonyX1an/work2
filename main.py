@@ -116,6 +116,7 @@ def save_best_weights(node_weight, save_path="best_weights"):
     print(f"Best node weights saved to {save_path}_label_0_node_weight.pt and {save_path}_label_1_node_weight.pt")
 
 for epoch in range(args.epochs):
+    #这里需要修改
     #train
     model.train()
     total_loss = 0
